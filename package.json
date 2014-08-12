@@ -16,9 +16,9 @@
     },
     "bundleDependencies": [ "hidapi" ],
     "scripts": {
-        "preupdate": "sh get-hidapi.sh",
-        "preinstall": "sh get-hidapi.sh",
-        "install": "sh install.sh"
+        "preupdate": "get-hidapi",
+        "preinstall": "get-hidapi",
+        "install": "install"
     },
     "main": "./index.js",
     "engines": {

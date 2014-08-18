@@ -133,7 +133,7 @@ HID::HID(const char* path)
     os << "cannot open device with path " << path;
     throw JSException(os.str());
   }
-}  
+}
 
 void
 HID::close()
@@ -282,11 +282,25 @@ HID::getFeatureReport(const Arguments& args)
     delete[] buf;
     return ThrowException(String::New("could not get feature report from device"));
   }
+#if 0
   Local<Array> retval = Array::New();
 
   for (int i = 0; i < returnedLength; i++) {
     retval->Set(i, Integer::New(buf[i]));
   }
+#else // Rinie try return buffer like read
+    //Get "fast" node Buffer constructor
+    Local<Function> nodeBufConstructor = Local<Function>::Cast(
+      Context::GetCurrent()->Global()->Get(String::New("Buffer") )
+    );
+    //Construct a new Buffer
+    Handle<Value> nodeBufferArgs[1] = { Integer::New(returnedLength) };
+    Local<Object> retval = nodeBufConstructor->NewInstance(1, nodeBufferArgs);
+    char* data = Buffer::Data(retval);
+    for (int i = 0; i < returnedLength; i++) {
+      data[i] = buf[i];
+    }
+#endif
   delete[] buf;
   return retval;
 }
@@ -323,7 +337,7 @@ HID::sendFeatureReport(const Arguments& args)
 
   int returnedLength = hid_send_feature_report(hid->_hidHandle, buf, message.size());
   delete[] buf;
-  if (returnedLength == -1) { // Not sure if there would ever be a valid return value of 0. 
+  if (returnedLength == -1) { // Not sure if there would ever be a valid return value of 0.
     return ThrowException(String::New("could not send feature report to device"));
   }
 
@@ -459,7 +473,7 @@ HID::devices(const Arguments& args)
   catch (JSException& e) {
     return e.asV8Exception();
   }
-  
+
   hid_device_info* devs = hid_enumerate(vendorId, productId);
   Local<Array> retval = Array::New();
   int count = 0;
@@ -526,11 +540,11 @@ HID::Initialize(Handle<Object> target)
 
 
 extern "C" {
-  
+
   static void init (Handle<Object> target)
   {
     HandleScope handleScope;
-    
+
     HID::Initialize(target);
   }
 
